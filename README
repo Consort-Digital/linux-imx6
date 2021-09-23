@@ -1,6 +1,68 @@
 Linux kernel
 ============
 
+/******************************************************************Consort Digital Pvt Ltd**********************************************************************************/ 
+
+***** This Kernel release will be used in TRCP 5207 to enable Touchscreen support for Newhaven "NHD-7.0-1024600AF-LSXP-CTP" ******
+
+Procedure
+Steps
+$ sudo apt update
+$ sudo apt install git build-essential flex bison device-tree-compiler
+$ git clone https://github.com/gateworks/linux-imx6 -b gateworks_5.4.45
+$ cd linux-imx6
+^^^ now edit arch/arm/boot/dts/imx6qdl-gw52xx.dtsi with following changes
+ polytouch: edt-ft5x06@38 {
+                compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+                pinctrl-names = "default";
++               pinctrl-0 = <&pinctrl_touch>;
+                reg = <0x38>;
+                interrupt-parent = <&gpio7>;
+                interrupts = <12 2>;
+                wakeup-gpios = <&gpio7 12 IRQ_TYPE_EDGE_FALLING>;
+        };
+         accel@1e {
+                compatible = "nxp,fxos8700";
+                reg = <0x1e>;
+        };
+         pinctrl_touch: touchgrp {
++               fsl,pins = <
++                       MX6QDL_PAD_SD2_CMD__GPIO1_IO11          0x1b0b0
++               >;
++       };
++
+        pinctrl_uart1: uart1grp {
+                fsl,pins = <
+                        MX6QDL_PAD_SD3_DAT7__UART1_TX_DATA      0x1b0b1
+        };
+        
+$ ARCH=arm make gwventana_defconfig
+$ ARCH=arm make dtbs
+^^^ Note you don't need a cross-compiler as your not actually building the kernel, just the dtbs so all you need is ARCH=arm and the dtc app
+$ ls arch/arm/boot/dts/imx6*gw52xx.dtb
+     arch/arm/boot/dts/imx6dl-gw52xx.dtb
+     arch/arm/boot/dts/imx6q-gw52xx.dtb
+
+
+Now copy those two dtb's to your target system. Boot your target and copy the updated dtbs to the /boot directory and sync your fs then reboot. For example:
+$ cd /boot
+$ wget http://<server>/<path>/imx6q-gw52xx.dtb -O imx6q-gw52xx.dtb
+$ wget http://<server>/<path>/imx6dl-gw52xx.dtb -O imx6dl-gw52xx.dtb
+(you can use WinScp to copy files direcltly)
+$ sync
+$reboot
+
+After rebooting you should see the edt-ft5x06 driver register a Linux input device as /dev/input/event* and you should be able to use the 'evtest' app to see touch events.
+
+
+If you do not see a /dev/input/event* then you can debug the I2C issue with following commands
+$ dmesg
+$ ls -l /sys/class/input/
+$ ls -l /dev/input/
+
+
+/****************************************************************************************************************************************************************************************/
+
 There are several guides for kernel developers and users. These guides can
 be rendered in a number of formats, like HTML and PDF. Please read
 Documentation/admin-guide/README.rst first.
