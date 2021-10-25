@@ -9,7 +9,9 @@
 / {
 	/* these are used by bootloader for disabling nodes */
 	aliases {
-
+		led0 = &led0;
+		led1 = &led1;
+		led2 = &led2;
 		nand = &gpmi;
 		ssi0 = &ssi1;
 		usb0 = &usbh1;
@@ -465,7 +467,7 @@
                 interrupt-parent = <&gpio7>;
                 interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
 		//touchscreen-swapped-x-y;
-                touchscreen-inverted-y;
+                //touchscreen-inverted-y;
                 touchscreen-size-x = <1024>;
                 touchscreen-size-y = <600>;
 		//touchscreen-swapped-x-y;
