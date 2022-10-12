@@ -24,9 +24,21 @@
 
 	backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm4 0 5000000>;
-		brightness-levels = <0 4 8 16 32 64 128 255>;
-		default-brightness-level = <7>;
+		pwms = <&pwm4 0 5000000>; /* 1000000000 / 5000000 = 200 Hz */
+		brightness-levels = <
+			0  1  2  3  4  5  6  7  8  9
+			10 11 12 13 14 15 16 17 18 19
+			20 21 22 23 24 25 26 27 28 29
+			30 31 32 33 34 35 36 37 38 39
+			40 41 42 43 44 45 46 47 48 49
+			50 51 52 53 54 55 56 57 58 59
+			60 61 62 63 64 65 66 67 68 69
+			70 71 72 73 74 75 76 77 78 79
+			80 81 82 83 84 85 86 87 88 89
+			90 91 92 93 94 95 96 97 98 99
+			100
+		>;
+		default-brightness-level = <100>;
 	};
 
 	gpio_keys {
@@ -138,6 +150,16 @@
 		regulator-always-on;
 	};
 
+	reg_can1_stby: regulator-can1-stby {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_reg_can1>;
+		compatible = "regulator-fixed";
+		regulator-name = "can1_stby";
+		gpio = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+	};
+
 	reg_usb_otg_vbus: regulator-usb-otg-vbus {
 		compatible = "regulator-fixed";
 		regulator-name = "usb_otg_vbus";
@@ -171,6 +193,7 @@
 &can1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1>;
+	xceiver-supply = <&reg_can1_stby>;
 	status = "okay";
 };
 
@@ -450,12 +473,17 @@
 		VDDIO-supply = <&reg_3p3v>;
 	};
 
-	touchscreen: egalax_ts@4 {
-		compatible = "eeti,egalax_ts";
-		reg = <0x04>;
-		interrupt-parent = <&gpio7>;
-		interrupts = <12 2>;
-		wakeup-gpios = <&gpio7 12 GPIO_ACTIVE_LOW>;
+	touchscreen: touchscreen@38 {
+		compatible = "edt,edt-ft5406", "edt,edt-ft5x06";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_touch>;
+		reg = <0x38>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <11 IRQ_TYPE_EDGE_FALLING>;
+		touchscreen-inverted-x;
+		touchscreen-inverted-y;
+		touchscreen-size-x = <1024>;
+		touchscreen-size-y = <600>;
 	};
 
 	accel@1e {
@@ -652,7 +680,6 @@
 		fsl,pins = <
 			MX6QDL_PAD_KEY_ROW2__FLEXCAN1_RX	0x1b0b1
 			MX6QDL_PAD_KEY_COL2__FLEXCAN1_TX	0x1b0b1
-			MX6QDL_PAD_GPIO_9__GPIO1_IO09		0x4001b0b0 /* CAN_STBY */
 		>;
 	};
 
@@ -739,6 +766,18 @@
 	pinctrl_pwm4: pwm4grp {
 		fsl,pins = <
 			MX6QDL_PAD_SD1_CMD__PWM4_OUT		0x1b0b1
+		>;
+	};
+
+	pinctrl_touch: touchgrp {
+		fsl,pins = <
+			MX6QDL_PAD_SD2_CMD__GPIO1_IO11		0x1b0b0
+		>;
+	};
+
+	pinctrl_reg_can1: regcan1grp {
+		fsl,pins = <
+			MX6QDL_PAD_GPIO_9__GPIO1_IO09		0x4001b0b0 /* CAN_STBY */
 		>;
 	};
 
